@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import path from "path";
-import { unlink, writeFile, readFile } from "fs/promises";
+import { unlink, writeFile } from "fs/promises";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { GoogleAIFileManager } from "@google/generative-ai/server";
 
 export async function POST(request: Request) {
 	// api
-	const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-	const fileManager = new GoogleAIFileManager(process.env.GEMINI_API_KEY);
+	const genAI = new GoogleGenerativeAI(`${process.env.GEMINI_API_KEY}`);
+	const fileManager = new GoogleAIFileManager(`${process.env.GEMINI_API_KEY}`);
 	const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 	// image

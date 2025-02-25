@@ -27,7 +27,7 @@ export default function Home() {
 				return;
 			}
 
-			let fileExt = image.type.split("/")[1].toLowerCase();
+			const fileExt = image.type.split("/")[1].toLowerCase();
 			let acceptedExt = ["png", "jpg", "jpeg"];
 
 			if (!acceptedExt.includes(fileExt)) {
