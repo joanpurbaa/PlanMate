@@ -97,7 +97,7 @@ Tolong buat output yang langsung bisa ditampilkan di frontend dalam format HTML.
 		await unlink(`src/_temp/${fullFileName}`);
 
 		return NextResponse.json({ result: result.response.text() });
-	} catch (error) {
+	} catch {
 		return NextResponse.json({ status: 500 });
 	}
 }

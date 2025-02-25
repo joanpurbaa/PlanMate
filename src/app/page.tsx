@@ -28,7 +28,7 @@ export default function Home() {
 			}
 
 			const fileExt = image.type.split("/")[1].toLowerCase();
-			let acceptedExt = ["png", "jpg", "jpeg"];
+			const acceptedExt = ["png", "jpg", "jpeg"];
 
 			if (!acceptedExt.includes(fileExt)) {
 				console.log("ditolak");
