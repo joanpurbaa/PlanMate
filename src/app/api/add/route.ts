@@ -1,45 +1,45 @@
 import { NextResponse } from "next/server";
-import path from "path";
-import { unlink, writeFile } from "fs/promises";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { GoogleAIFileManager } from "@google/generative-ai/server";
+import { put, del } from "@vercel/blob";
+import { revalidatePath } from "next/cache";
 
 export async function POST(request: Request) {
 	try {
-		// api
 		const genAI = new GoogleGenerativeAI(`${process.env.GEMINI_API_KEY}`);
-		const fileManager = new GoogleAIFileManager(`${process.env.GEMINI_API_KEY}`);
 		const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-		// image
 		const formData = await request.formData();
-		const image = formData.get("image");
+		const image = formData.get("image") as File;
 		const task = formData.get("task");
 
 		if (!(image instanceof File)) {
 			throw new Error("Uploaded image is not a valid file.");
 		}
 
-		// input image process
-		const buffer = Buffer.from(await image.arrayBuffer());
 		const fileType = image?.type.split("/")[1].toLowerCase();
 		const fileName = Math.random().toString().split(".")[1];
 		const fullFileName = fileName + "." + fileType;
 
-		await writeFile(
-			path.join(process.cwd(), `src/_temp/${fullFileName}`),
-			buffer
-		);
+		const blob = await put(fullFileName, image, {
+			access: "public",
+		});
 
-		const uploadResult = await fileManager.uploadFile(
-			`src/_temp/${fullFileName}`,
-			{
-				mimeType: image.type,
-				displayName: image.name,
-			}
+		console.log(blob.url);
+		console.log(blob.contentType);
+
+		revalidatePath("/");
+
+		const imageResp = await fetch(blob.url).then((response) =>
+			response.arrayBuffer()
 		);
 
 		const result = await model.generateContent([
+			{
+				inlineData: {
+					data: Buffer.from(imageResp).toString("base64"),
+					mimeType: "image/jpeg",
+				},
+			},
 			`
         Saya ingin mencari waktu yang **luang** untuk melakukan kegiatan berikut:  
   **"${task}"**  
@@ -91,15 +91,9 @@ export async function POST(request: Request) {
   
   Tolong buat output yang langsung bisa ditampilkan di frontend dalam format HTML.
         `,
-			{
-				fileData: {
-					fileUri: uploadResult.file.uri,
-					mimeType: uploadResult.file.mimeType,
-				},
-			},
 		]);
 
-		await unlink(`src/_temp/${fullFileName}`);
+		del(blob.url);
 
 		return NextResponse.json({ result: result.response.text() });
 	} catch {
