@@ -16,28 +16,31 @@ export async function POST(request: Request) {
 		const image = formData.get("image");
 		const task = formData.get("task");
 
+		if (!(image instanceof File)) {
+			throw new Error("Uploaded image is not a valid file.");
+		}
+
 		// input image process
-		if (image instanceof File) {
-			const buffer = Buffer.from(await image.arrayBuffer());
-			const fileType = image?.type.split("/")[1].toLowerCase();
-			const fileName = Math.random().toString().split(".")[1];
-			const fullFileName = fileName + "." + fileType;
+		const buffer = Buffer.from(await image.arrayBuffer());
+		const fileType = image?.type.split("/")[1].toLowerCase();
+		const fileName = Math.random().toString().split(".")[1];
+		const fullFileName = fileName + "." + fileType;
 
-			await writeFile(
-				path.join(process.cwd(), `src/_temp/${fullFileName}`),
-				buffer
-			);
+		await writeFile(
+			path.join(process.cwd(), `src/_temp/${fullFileName}`),
+			buffer
+		);
 
-			const uploadResult = await fileManager.uploadFile(
-				`src/_temp/${fullFileName}`,
-				{
-					mimeType: image.type,
-					displayName: image.name,
-				}
-			);
+		const uploadResult = await fileManager.uploadFile(
+			`src/_temp/${fullFileName}`,
+			{
+				mimeType: image.type,
+				displayName: image.name,
+			}
+		);
 
-			const result = await model.generateContent([
-				`
+		const result = await model.generateContent([
+			`
         Saya ingin mencari waktu yang **luang** untuk melakukan kegiatan berikut:  
   **"${task}"**  
   
@@ -88,20 +91,17 @@ export async function POST(request: Request) {
   
   Tolong buat output yang langsung bisa ditampilkan di frontend dalam format HTML.
         `,
-				{
-					fileData: {
-						fileUri: uploadResult.file.uri,
-						mimeType: uploadResult.file.mimeType,
-					},
+			{
+				fileData: {
+					fileUri: uploadResult.file.uri,
+					mimeType: uploadResult.file.mimeType,
 				},
-			]);
+			},
+		]);
 
-			await unlink(`src/_temp/${fullFileName}`);
+		await unlink(`src/_temp/${fullFileName}`);
 
-			return NextResponse.json({ result: result.response.text() });
-		} else {
-			throw new Error("Uploaded image is not a valid file.");
-		}
+		return NextResponse.json({ result: result.response.text() });
 	} catch {
 		return NextResponse.json({ status: 500 });
 	}
