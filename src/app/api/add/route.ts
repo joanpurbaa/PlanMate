@@ -24,9 +24,6 @@ export async function POST(request: Request) {
 			access: "public",
 		});
 
-		console.log(blob.url);
-		console.log(blob.contentType);
-
 		revalidatePath("/");
 
 		const imageResp = await fetch(blob.url).then((response) =>

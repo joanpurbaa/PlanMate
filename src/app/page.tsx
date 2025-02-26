@@ -54,10 +54,6 @@ export default function Home() {
 					setResult(cleanedResult);
 					setLoading(false);
 				});
-			try {
-			} catch {
-			} finally {
-			}
 		},
 	});
 
@@ -175,7 +171,7 @@ export default function Home() {
 							<li>
 								<div
 									dangerouslySetInnerHTML={{ __html: result }}
-									className=" text-xs sm:text-base"></div>
+									className="text-xs sm:text-base"></div>
 							</li>
 						)}
 					</ul>
